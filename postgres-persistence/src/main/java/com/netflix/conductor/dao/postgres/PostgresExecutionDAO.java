@@ -155,46 +155,6 @@ public class PostgresExecutionDAO extends PostgresBaseDAO implements ExecutionDA
     }
 
     @Override
-    public boolean exceedsInProgressLimit(Task task) {
-
-        Optional<TaskDef> taskDefinition = task.getTaskDefinition();
-        if (!taskDefinition.isPresent()) {
-            return false;
-        }
-
-        TaskDef taskDef = taskDefinition.get();
-
-        int limit = taskDef.concurrencyLimit();
-        if (limit <= 0) {
-            return false;
-        }
-
-        long current = getInProgressTaskCount(task.getTaskDefName());
-
-        if (current >= limit) {
-            Monitors.recordTaskConcurrentExecutionLimited(task.getTaskDefName(), limit);
-            return true;
-        }
-
-        logger.info("Task execution count for {}: limit={}, current={}", task.getTaskDefName(), limit,
-                getInProgressTaskCount(task.getTaskDefName()));
-
-        String taskId = task.getTaskId();
-
-        List<String> tasksInProgressInOrderOfArrival = findAllTasksInProgressInOrderOfArrival(task, limit);
-
-        boolean rateLimited = !tasksInProgressInOrderOfArrival.contains(taskId);
-
-        if (rateLimited) {
-            logger.info("Task execution count limited. {}, limit {}, current {}", task.getTaskDefName(), limit,
-                    getInProgressTaskCount(task.getTaskDefName()));
-            Monitors.recordTaskConcurrentExecutionLimited(task.getTaskDefName(), limit);
-        }
-
-        return rateLimited;
-    }
-
-    @Override
     public boolean removeTask(String taskId) {
         Task task = getTask(taskId);
 
@@ -781,7 +741,7 @@ public class PostgresExecutionDAO extends PostgresBaseDAO implements ExecutionDA
         return queryWithTransaction(GET_ALL_POLL_DATA, q -> q.addParameter(queueName).executeAndFetch(PollData.class));
     }
 
-    private List<String> findAllTasksInProgressInOrderOfArrival(Task task, int limit) {
+    public List<String> findAllTasksInProgressInOrderOfArrival(Task task, int limit) {
         String GET_IN_PROGRESS_TASKS_WITH_LIMIT = "SELECT task_id FROM task_in_progress WHERE task_def_name = ? ORDER BY created_on LIMIT ?";
 
         return queryWithTransaction(GET_IN_PROGRESS_TASKS_WITH_LIMIT,

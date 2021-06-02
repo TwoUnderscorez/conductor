@@ -67,14 +67,6 @@ public interface ExecutionDAO {
 	void updateTask(Task task);
 	
 	/**
-	 * Checks if the number of tasks in progress for the given taskDef will exceed the limit if the task is scheduled to be in progress (given to the worker or for system tasks start() method called)
-	 * @param task The task to be executed.  Limit is set in the Task's definition 
-	 * @return true if by executing this task, the limit is breached.  false otherwise.
-	 * @see TaskDef#concurrencyLimit()
-	 */
-	boolean exceedsInProgressLimit(Task task);
-	
-	/**
 	 * 
 	 * @param taskId id of the task to be removed.
 	 * @return true if the deletion is successful, false otherwise.
@@ -197,6 +189,14 @@ public interface ExecutionDAO {
 	 * @return Number of task currently in IN_PROGRESS status
 	 */
 	long getInProgressTaskCount(String taskDefName);
+
+	/**
+	 * 
+	 * @param task task definition name
+	 * @param limit limit
+	 * @return
+	 */
+	List<String> findAllTasksInProgressInOrderOfArrival(Task task, int limit);
 
 	/**
 	 * 

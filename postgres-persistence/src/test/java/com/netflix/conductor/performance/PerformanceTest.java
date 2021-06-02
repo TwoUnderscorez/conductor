@@ -277,7 +277,7 @@ public class PerformanceTest {
                             .forEach(task -> {
                                 try {
                                     // should always be false
-                                    boolean concurrentLimit = E.exceedsInProgressLimit(task);
+                                    // boolean concurrentLimit = E.exceedsInProgressLimit(task);
                                     task.setStartTime(System.currentTimeMillis());
                                     E.updateTask(task);
                                     logger.info("Polled {}", task.getTaskId());

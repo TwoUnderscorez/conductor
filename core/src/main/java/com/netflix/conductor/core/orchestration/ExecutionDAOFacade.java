@@ -27,6 +27,7 @@ import com.netflix.conductor.core.config.Configuration;
 import com.netflix.conductor.core.events.queue.Message;
 import com.netflix.conductor.core.execution.ApplicationException;
 import com.netflix.conductor.core.execution.ApplicationException.Code;
+import com.netflix.conductor.dao.ConcurrentExecutionLimitingDAO;
 import com.netflix.conductor.dao.ExecutionDAO;
 import com.netflix.conductor.dao.IndexDAO;
 import com.netflix.conductor.dao.PollDataDAO;
@@ -37,6 +38,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -59,6 +61,7 @@ public class ExecutionDAOFacade {
     private final ExecutionDAO executionDAO;
     private final QueueDAO queueDAO;
     private final IndexDAO indexDAO;
+    private final ConcurrentExecutionLimitingDAO executionLimitingDAO;
     private final RateLimitingDAO rateLimitingDao;
     private final PollDataDAO pollDataDAO;
     private final ObjectMapper objectMapper;
@@ -67,11 +70,12 @@ public class ExecutionDAOFacade {
     private final ScheduledThreadPoolExecutor scheduledThreadPoolExecutor;
 
     @Inject
-    public ExecutionDAOFacade(ExecutionDAO executionDAO, QueueDAO queueDAO, IndexDAO indexDAO,
+    public ExecutionDAOFacade(ExecutionDAO executionDAO, QueueDAO queueDAO, IndexDAO indexDAO, ConcurrentExecutionLimitingDAO executionLimitingDAO,
         RateLimitingDAO rateLimitingDao, PollDataDAO pollDataDAO, ObjectMapper objectMapper, Configuration config) {
         this.executionDAO = executionDAO;
         this.queueDAO = queueDAO;
         this.indexDAO = indexDAO;
+        this.executionLimitingDAO = executionLimitingDAO;
         this.rateLimitingDao = rateLimitingDao;
         this.pollDataDAO = pollDataDAO;
         this.objectMapper = objectMapper;
@@ -368,6 +372,9 @@ public class ExecutionDAOFacade {
                 if (task.getStatus().isTerminal() && task.getEndTime() == 0) {
                     task.setEndTime(System.currentTimeMillis());
                 }
+                if(task.getStatus().isTerminal()) {
+                    executionLimitingDAO.notifyOfLimitedTaskCompletion(task);
+                }
             }
             executionDAO.updateTask(task);
             /*
@@ -458,7 +465,7 @@ public class ExecutionDAOFacade {
     }
 
     public boolean exceedsInProgressLimit(Task task) {
-        return executionDAO.exceedsInProgressLimit(task);
+        return executionLimitingDAO.exceedsInProgressLimit(task);
     }
 
     public boolean exceedsRateLimitPerFrequency(Task task, TaskDef taskDef) {

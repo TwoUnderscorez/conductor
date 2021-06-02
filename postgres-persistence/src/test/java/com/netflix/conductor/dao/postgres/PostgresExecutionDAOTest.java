@@ -14,6 +14,8 @@ package com.netflix.conductor.dao.postgres;
 
 import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
 import com.netflix.conductor.common.run.Workflow;
+import com.netflix.conductor.contribs.executionLimiting.TaskDefLimitingDAO;
+import com.netflix.conductor.dao.ConcurrentExecutionLimitingDAO;
 import com.netflix.conductor.dao.ExecutionDAO;
 import com.netflix.conductor.dao.ExecutionDAOTest;
 import org.junit.After;
@@ -39,10 +41,7 @@ public class PostgresExecutionDAOTest extends ExecutionDAOTest {
     @Before
     public void setup() throws Exception {
         testPostgres = new PostgresDAOTestUtil(name.getMethodName().toLowerCase());
-        executionDAO = new PostgresExecutionDAO(
-                testPostgres.getObjectMapper(),
-                testPostgres.getDataSource()
-        );
+        executionDAO = new PostgresExecutionDAO(testPostgres.getObjectMapper(), testPostgres.getDataSource());
         testPostgres.resetAllData();
     }
 
@@ -63,7 +62,8 @@ public class PostgresExecutionDAOTest extends ExecutionDAOTest {
 
         generateWorkflows(workflow, 10);
 
-        List<Workflow> bycorrelationId = getExecutionDAO().getWorkflowsByCorrelationId("pending_count_correlation_jtest", "corr001", true);
+        List<Workflow> bycorrelationId = getExecutionDAO()
+                .getWorkflowsByCorrelationId("pending_count_correlation_jtest", "corr001", true);
         assertNotNull(bycorrelationId);
         assertEquals(10, bycorrelationId.size());
     }
@@ -86,5 +86,10 @@ public class PostgresExecutionDAOTest extends ExecutionDAOTest {
     @Override
     public ExecutionDAO getExecutionDAO() {
         return executionDAO;
+    }
+
+    @Override
+    protected ConcurrentExecutionLimitingDAO getLimitingDAO() {
+        return new TaskDefLimitingDAO(getExecutionDAO());
     }
 }

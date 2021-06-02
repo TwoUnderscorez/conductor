@@ -18,6 +18,9 @@ import com.google.inject.util.Modules;
 import com.netflix.conductor.cassandra.CassandraModule;
 import com.netflix.conductor.common.utils.ExternalPayloadStorage;
 import com.netflix.conductor.common.utils.JsonMapperProvider;
+import com.netflix.conductor.contribs.executionLimiting.TaskDefAndWorkflowTaskLimitingDAOModule;
+import com.netflix.conductor.contribs.executionLimiting.TaskDefLimitingDAOModule;
+import com.netflix.conductor.contribs.executionLimiting.WorkflowTaskLimitingDAOModule;
 import com.netflix.conductor.contribs.http.HttpTask;
 import com.netflix.conductor.contribs.http.RestClientManager;
 import com.netflix.conductor.contribs.json.JsonJqTransform;
@@ -201,6 +204,33 @@ public class ModulesProvider implements Provider<List<AbstractModule>> {
         new KafkaPublishTask(configuration, new KafkaProducerManager(configuration), new JsonMapperProvider().get());
         new JsonJqTransform(new JsonMapperProvider().get());
         modules.add(new ServerModule());
+
+        Configuration.LIMITING_DAO limitingDao;
+        try {
+            limitingDao = configuration.getLimitingDAO();
+        } catch (IllegalArgumentException ie) {
+            final String message = "Invalid limiting dao name: " + configuration.getLimitingDAOString()
+                    + ", supported values are: " + Arrays.toString(Configuration.LIMITING_DAO.values());
+            logger.error(message);
+            throw new ProvisionException(message, ie);
+        }
+
+        switch (limitingDao) {
+            case WORKFLOWTASK:
+                modules.add(new WorkflowTaskLimitingDAOModule());
+                logger.info("Using only workflowTask concurrent execution limiting.");
+                break;
+            case TASKDEF_AND_WORKFLOWTASK:
+                modules.add(new TaskDefAndWorkflowTaskLimitingDAOModule());
+                logger.info("Using workflowTask and taskDef concurrent execution limiting.");
+                break;
+            case TASKDEF: 
+                modules.add(new TaskDefLimitingDAOModule());
+                logger.info("Using only taskDef concurrent execution limiting.");
+                break;
+            default:
+                break;
+        }
 
         return modules;
     }

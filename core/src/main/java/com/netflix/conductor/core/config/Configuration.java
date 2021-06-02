@@ -87,6 +87,9 @@ public interface Configuration {
     String LOCKING_SERVER_PROPERTY_NAME = "workflow.decider.locking.server";
     String LOCKING_SERVER_DEFAULT_VALUE = "noop_lock";
 
+    String LIMITING_DAO_PROPERTY_NAME = "workflow.limitingdao";
+    String LIMITING_DAO_DEFAULT_VALUE = "taskdef";
+
     String IGNORE_LOCKING_EXCEPTIONS_PROPERTY_NAME = "workflow.decider.locking.exceptions.ignore";
     boolean IGNORE_LOCKING_EXCEPTIONS_DEFAULT_VALUE = false;
 
@@ -146,12 +149,20 @@ public interface Configuration {
         return LOCKING_SERVER.valueOf(getLockingServerString());
     }
 
+    default LIMITING_DAO getLimitingDAO() {
+        return LIMITING_DAO.valueOf(getLimitingDAOString());
+    }
+
     default String getDBString() {
         return getProperty(DB_PROPERTY_NAME, DB_DEFAULT_VALUE).toUpperCase();
     }
 
     default String getLockingServerString() {
         return getProperty(LOCKING_SERVER_PROPERTY_NAME, LOCKING_SERVER_DEFAULT_VALUE).toUpperCase();
+    }
+
+    default String getLimitingDAOString() {
+        return getProperty(LIMITING_DAO_PROPERTY_NAME, LIMITING_DAO_DEFAULT_VALUE).toUpperCase();
     }
 
     default boolean ignoreLockingExceptions() {
@@ -508,5 +519,9 @@ public interface Configuration {
 
     enum LOCKING_SERVER {
         NOOP_LOCK, REDIS, ZOOKEEPER, LOCAL_ONLY
+    }
+
+    enum LIMITING_DAO {
+        TASKDEF, TASKDEF_AND_WORKFLOWTASK, WORKFLOWTASK
     }
 }

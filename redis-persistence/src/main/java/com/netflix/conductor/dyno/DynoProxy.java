@@ -257,4 +257,8 @@ public class DynoProxy {
         return dynoClient.scard(key);
     }
 
+    public Long zrank(String key, String member) {
+        return dynoClient.zrank(key, member);
+    }
+
 }

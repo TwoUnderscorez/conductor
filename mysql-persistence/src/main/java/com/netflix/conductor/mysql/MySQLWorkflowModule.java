@@ -20,9 +20,12 @@ import com.netflix.conductor.dao.MetadataDAO;
 import com.netflix.conductor.dao.PollDataDAO;
 import com.netflix.conductor.dao.QueueDAO;
 import com.netflix.conductor.dao.RateLimitingDAO;
+import com.netflix.conductor.dao.SemaphoreDAO;
 import com.netflix.conductor.dao.mysql.MySQLExecutionDAO;
 import com.netflix.conductor.dao.mysql.MySQLMetadataDAO;
 import com.netflix.conductor.dao.mysql.MySQLQueueDAO;
+import com.netflix.conductor.dao.mysql.MySQLSemaphoreDAO;
+
 import javax.sql.DataSource;
 
 /**
@@ -40,5 +43,6 @@ public class MySQLWorkflowModule extends AbstractModule {
         bind(RateLimitingDAO.class).to(MySQLExecutionDAO.class);
         bind(PollDataDAO.class).to(MySQLExecutionDAO.class);
         bind(QueueDAO.class).to(MySQLQueueDAO.class);
+        bind(SemaphoreDAO.class).to(MySQLSemaphoreDAO.class);
     }
 }

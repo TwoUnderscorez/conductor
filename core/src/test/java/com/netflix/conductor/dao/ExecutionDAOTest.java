@@ -40,12 +40,14 @@ import org.junit.rules.ExpectedException;
 public abstract class ExecutionDAOTest {
 
     abstract protected ExecutionDAO getExecutionDAO();
+    abstract protected ConcurrentExecutionLimitingDAO getLimitingDAO();
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
 
     @Test
     public void testTaskExceedsLimit() {
+        ConcurrentExecutionLimitingDAO dao = getLimitingDAO();
         TaskDef taskDefinition = new TaskDef();
         taskDefinition.setName("task1");
         taskDefinition.setConcurrentExecLimit(1);
@@ -70,12 +72,12 @@ public abstract class ExecutionDAOTest {
         }
 
         getExecutionDAO().createTasks(tasks);
-        assertFalse(getExecutionDAO().exceedsInProgressLimit(tasks.get(0)));
+        assertFalse(dao.exceedsInProgressLimit(tasks.get(0)));
         tasks.get(0).setStatus(Task.Status.IN_PROGRESS);
         getExecutionDAO().updateTask(tasks.get(0));
 
         for (Task task : tasks) {
-            assertTrue(getExecutionDAO().exceedsInProgressLimit(task));
+            assertTrue(dao.exceedsInProgressLimit(task));
         }
     }
 

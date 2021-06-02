@@ -15,6 +15,7 @@ apply plugin: 'docker-compose'
 
 dependencies {
     compile project(':conductor-core')
+    compile project(':conductor-contribs')
     compile "com.google.inject:guice:${revGuice}"
 
     compile "commons-io:commons-io:${revCommonsIo}"

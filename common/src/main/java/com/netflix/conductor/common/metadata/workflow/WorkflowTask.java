@@ -166,6 +166,12 @@ public class WorkflowTask {
 	@ProtoField(id = 26)
 	private Integer retryCount;
 
+	@ProtoField(id = 27)
+    private int globalConcurrentExecutionLimit;
+
+    @ProtoField(id = 28)
+    private int localConcurrentExecutionLimit;
+
 	/**
 	 * @return the name
 	 */
@@ -529,6 +535,34 @@ public class WorkflowTask {
 		this.defaultExclusiveJoinTask = defaultExclusiveJoinTask;
 	}
 
+	    /**
+     * @return Global concurrent execution limit
+     */
+    public int getGlobalConcurrentExecutionLimit() {
+        return globalConcurrentExecutionLimit;
+    }
+
+    /**
+     * @param limit Global concurrent execution limit
+     */
+    public void setGlobalConcurrentExecutionLimit(int limit) {
+        this.globalConcurrentExecutionLimit = limit;
+    }
+
+    /**
+     * @return Local concurrent execution limit
+     */
+    public int getLocalConcurrentExecutionLimit() {
+        return localConcurrentExecutionLimit;
+    }
+
+    /**
+     * @param limit Local concurrent execution limit
+     */
+    public void setLocalConcurrentExecutionLimit(int limit) {
+        this.localConcurrentExecutionLimit = limit;
+    }
+
 	private Collection<List<WorkflowTask>> children() {
 		Collection<List<WorkflowTask>> workflowTaskLists = new LinkedList<>();
 		TaskType taskType = TaskType.USER_DEFINED;
@@ -693,7 +727,9 @@ public class WorkflowTask {
         if (o == null || getClass() != o.getClass()) return false;
         WorkflowTask that = (WorkflowTask) o;
         return getStartDelay() == that.getStartDelay() &&
-                isOptional() == that.isOptional() &&
+				isOptional() == that.isOptional() &&
+				getLocalConcurrentExecutionLimit() == that.getLocalConcurrentExecutionLimit() &&
+				getGlobalConcurrentExecutionLimit() == that.getGlobalConcurrentExecutionLimit() &&
                 Objects.equals(getName(), that.getName()) &&
                 Objects.equals(getTaskReferenceName(), that.getTaskReferenceName()) &&
                 Objects.equals(getDescription(), that.getDescription()) &&
@@ -741,7 +777,9 @@ public class WorkflowTask {
                 isAsyncComplete(),
                 isOptional(),
                 getDefaultExclusiveJoinTask(),
-                getRetryCount()
+                getRetryCount(),
+				getGlobalConcurrentExecutionLimit(),
+				getLocalConcurrentExecutionLimit()
         );
     }
 }

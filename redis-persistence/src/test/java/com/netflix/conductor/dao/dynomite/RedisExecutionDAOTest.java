@@ -18,7 +18,9 @@ import com.netflix.conductor.common.metadata.tasks.Task.Status;
 import com.netflix.conductor.common.metadata.tasks.TaskDef;
 import com.netflix.conductor.common.utils.JsonMapperProvider;
 import com.netflix.conductor.config.TestConfiguration;
+import com.netflix.conductor.contribs.executionLimiting.TaskDefLimitingDAO;
 import com.netflix.conductor.core.config.Configuration;
+import com.netflix.conductor.dao.ConcurrentExecutionLimitingDAO;
 import com.netflix.conductor.dao.ExecutionDAO;
 import com.netflix.conductor.dao.ExecutionDAOTest;
 import com.netflix.conductor.dao.redis.JedisMock;
@@ -45,7 +47,7 @@ import static org.junit.Assert.assertTrue;
 public class RedisExecutionDAOTest extends ExecutionDAOTest {
 
     private RedisExecutionDAO executionDAO;
-	private static ObjectMapper objectMapper = new JsonMapperProvider().get();
+    private static ObjectMapper objectMapper = new JsonMapperProvider().get();
 
     @Before
     public void init() {
@@ -87,5 +89,10 @@ public class RedisExecutionDAOTest extends ExecutionDAOTest {
     @Override
     protected ExecutionDAO getExecutionDAO() {
         return executionDAO;
+    }
+
+    @Override
+    protected ConcurrentExecutionLimitingDAO getLimitingDAO() {
+        return new TaskDefLimitingDAO(getExecutionDAO());
     }
 }
