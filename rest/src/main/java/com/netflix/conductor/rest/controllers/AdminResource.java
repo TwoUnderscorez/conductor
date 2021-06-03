@@ -13,7 +13,6 @@
 package com.netflix.conductor.rest.controllers;
 
 import static com.netflix.conductor.rest.config.RequestMappingConstants.ADMIN;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 import com.netflix.conductor.common.metadata.tasks.Task;

@@ -12,7 +12,6 @@
  */
 package com.netflix.conductor.contribs.queue.nats;
 
-import com.netflix.conductor.core.LifecycleAwareComponent;
 import com.netflix.conductor.core.events.queue.Message;
 import com.netflix.conductor.core.events.queue.ObservableQueue;
 import io.nats.client.NUID;

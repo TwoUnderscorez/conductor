@@ -24,7 +24,6 @@ import com.netflix.conductor.core.config.ConductorProperties;
 import com.netflix.conductor.core.exception.ApplicationException;
 import com.netflix.conductor.core.exception.ApplicationException.Code;
 import com.netflix.conductor.dao.ExecutionDAO;
-import com.netflix.conductor.metrics.Monitors;
 import com.netflix.conductor.redis.config.AnyRedisCondition;
 import com.netflix.conductor.redis.config.RedisProperties;
 import com.netflix.conductor.redis.jedis.JedisProxy;
@@ -224,46 +223,6 @@ public class RedisExecutionDAO extends BaseDynoDAO implements ExecutionDAO {
         if (!taskIds.contains(task.getTaskId())) {
             correlateTaskToWorkflowInDS(task.getTaskId(), task.getWorkflowInstanceId());
         }
-    }
-
-    @Override
-    public boolean exceedsInProgressLimit(Task task) {
-        Optional<TaskDef> taskDefinition = task.getTaskDefinition();
-        if (!taskDefinition.isPresent()) {
-            return false;
-        }
-        int limit = taskDefinition.get().concurrencyLimit();
-        if (limit <= 0) {
-            return false;
-        }
-
-        long current = getInProgressTaskCount(task.getTaskDefName());
-        if (current >= limit) {
-            LOGGER.info("Task execution count limited. task - {}:{}, limit: {}, current: {}", task.getTaskId(),
-                task.getTaskDefName(), limit, current);
-            Monitors.recordTaskConcurrentExecutionLimited(task.getTaskDefName(), limit);
-            return true;
-        }
-
-        String rateLimitKey = nsKey(TASK_LIMIT_BUCKET, task.getTaskDefName());
-        double score = System.currentTimeMillis();
-        String taskId = task.getTaskId();
-        jedisProxy.zaddnx(rateLimitKey, score, taskId);
-        recordRedisDaoRequests("checkTaskRateLimiting", task.getTaskType(), task.getWorkflowType());
-
-        Set<String> ids = jedisProxy.zrangeByScore(rateLimitKey, 0, score + 1, limit);
-        boolean rateLimited = !ids.contains(taskId);
-        if (rateLimited) {
-            LOGGER.info("Task execution count limited. task - {}:{}, limit: {}, current: {}", task.getTaskId(),
-                task.getTaskDefName(), limit, current);
-            String inProgressKey = nsKey(TASKS_IN_PROGRESS_STATUS, task.getTaskDefName());
-            //Cleanup any items that are still present in the rate limit bucket but not in progress anymore!
-            ids.stream()
-                .filter(id -> !jedisProxy.sismember(inProgressKey, id))
-                .forEach(id2 -> jedisProxy.zrem(rateLimitKey, id2));
-            Monitors.recordTaskRateLimited(task.getTaskDefName(), limit);
-        }
-        return rateLimited;
     }
 
     private void removeTaskMappings(Task task) {
@@ -654,5 +613,16 @@ public class RedisExecutionDAO extends BaseDynoDAO implements ExecutionDAO {
         } catch (NullPointerException npe) {
             throw new ApplicationException(Code.INVALID_INPUT, npe.getMessage(), npe);
         }
+    }
+
+    @Override
+    public List<String> findAllTasksInProgressInOrderOfArrival(Task task, int limit) {
+        String rateLimitKey = nsKey(TASK_LIMIT_BUCKET, task.getTaskDefName());
+        double score = System.currentTimeMillis();
+        String taskId = task.getTaskId();
+        jedisProxy.zaddnx(rateLimitKey, score, taskId);
+        recordRedisDaoRequests("checkTaskRateLimiting", task.getTaskType(), task.getWorkflowType());
+
+        return new ArrayList<String>(jedisProxy.zrangeByScore(rateLimitKey, 0, score + 1, limit));
     }
 }

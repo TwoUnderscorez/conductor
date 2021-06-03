@@ -428,6 +428,7 @@ public class CassandraDAOTest {
 
     @Test
     public void testTaskDefLimitCRUD() {
+        ConcurrentExecutionLimitingDAO limitingDAO = new TaskDefLimitingDAO(executionDAO);
         String taskDefName = "test_task_def";
         String taskId = IDGenerator.generate();
 
@@ -456,35 +457,35 @@ public class CassandraDAOTest {
 
         // no tasks are IN_PROGRESS
         executionDAO.updateTaskDefLimit(task, false);
-        assertFalse(executionDAO.exceedsInProgressLimit(task));
+        assertFalse(limitingDAO.exceedsInProgressLimit(task));
 
         // set a task to IN_PROGRESS
         task.setStatus(Status.IN_PROGRESS);
         executionDAO.updateTaskDefLimit(task, false);
 
         // when same task is checked
-        assertFalse(executionDAO.exceedsInProgressLimit(task));
+        assertFalse(limitingDAO.exceedsInProgressLimit(task));
 
         // check if new task can be added
-        assertTrue(executionDAO.exceedsInProgressLimit(newTask));
+        assertTrue(limitingDAO.exceedsInProgressLimit(newTask));
 
         // set IN_PROGRESS task to COMPLETED
         task.setStatus(Status.COMPLETED);
         executionDAO.updateTaskDefLimit(task, false);
 
         // check new task again
-        assertFalse(executionDAO.exceedsInProgressLimit(newTask));
+        assertFalse(limitingDAO.exceedsInProgressLimit(newTask));
 
         // set new task to IN_PROGRESS
         newTask.setStatus(Status.IN_PROGRESS);
         executionDAO.updateTaskDefLimit(newTask, false);
 
         // check new task again
-        assertFalse(executionDAO.exceedsInProgressLimit(newTask));
+        assertFalse(limitingDAO.exceedsInProgressLimit(newTask));
 
         // force remove from task def limit
         executionDAO.updateTaskDefLimit(newTask, true);
-        assertFalse(executionDAO.exceedsInProgressLimit(task));
+        assertFalse(limitingDAO.exceedsInProgressLimit(task));
     }
 
     @Test

@@ -14,7 +14,6 @@ package com.netflix.conductor.dao;
 
 import com.netflix.conductor.common.metadata.events.EventExecution;
 import com.netflix.conductor.common.metadata.tasks.Task;
-import com.netflix.conductor.common.metadata.tasks.TaskDef;
 import com.netflix.conductor.common.run.Workflow;
 
 import java.util.List;
@@ -54,16 +53,6 @@ public interface ExecutionDAO {
      * @param task Task to be updated
      */
     void updateTask(Task task);
-
-    /**
-     * Checks if the number of tasks in progress for the given taskDef will exceed the limit if the task is scheduled to
-     * be in progress (given to the worker or for system tasks start() method called)
-     *
-     * @param task The task to be executed.  Limit is set in the Task's definition
-     * @return true if by executing this task, the limit is breached.  false otherwise.
-     * @see TaskDef#concurrencyLimit()
-     */
-    boolean exceedsInProgressLimit(Task task);
 
     /**
      * @param taskId id of the task to be removed.
@@ -208,4 +197,12 @@ public interface ExecutionDAO {
      * @param eventExecution Event execution to be removed
      */
     void removeEventExecution(EventExecution eventExecution);
+
+    /**
+	 * 
+	 * @param task task definition name
+	 * @param limit limit
+	 * @return
+	 */
+	List<String> findAllTasksInProgressInOrderOfArrival(Task task, int limit);
 }

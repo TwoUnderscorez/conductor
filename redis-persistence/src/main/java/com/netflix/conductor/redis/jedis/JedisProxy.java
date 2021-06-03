@@ -228,4 +228,9 @@ public class JedisProxy {
     public Long scard(String key) {
         return jedisCommands.scard(key);
     }
+
+    public Long zrank(String key, String member) {
+        return jedisCommands.zrank(key, member);
+    }
+
 }

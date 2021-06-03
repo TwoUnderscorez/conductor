@@ -13,7 +13,6 @@
 package com.netflix.conductor.contribs.queue.sqs.config;
 
 import com.amazonaws.services.sqs.AmazonSQSClient;
-import com.netflix.conductor.contribs.queue.sqs.SQSObservableQueue;
 import com.netflix.conductor.contribs.queue.sqs.SQSObservableQueue.Builder;
 import com.netflix.conductor.core.events.EventQueueProvider;
 import com.netflix.conductor.core.events.queue.ObservableQueue;

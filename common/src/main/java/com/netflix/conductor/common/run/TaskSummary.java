@@ -17,7 +17,6 @@ import com.github.vmg.protogen.annotations.ProtoMessage;
 import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.metadata.tasks.Task.Status;
 import com.netflix.conductor.common.utils.SummaryUtil;
-import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 
 import java.text.SimpleDateFormat;

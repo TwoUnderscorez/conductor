@@ -20,6 +20,7 @@ import com.netflix.conductor.common.run.Workflow;
 import com.netflix.conductor.common.run.Workflow.WorkflowStatus;
 import com.netflix.conductor.core.config.ConductorProperties;
 import com.netflix.conductor.core.execution.TestDeciderService;
+import com.netflix.conductor.dao.ConcurrentExecutionLimitingDAO;
 import com.netflix.conductor.dao.ExecutionDAO;
 import com.netflix.conductor.dao.IndexDAO;
 import com.netflix.conductor.dao.PollDataDAO;
@@ -70,10 +71,11 @@ public class ExecutionDAOFacadeTest {
         indexDAO = mock(IndexDAO.class);
         RateLimitingDAO rateLimitingDao = mock(RateLimitingDAO.class);
         PollDataDAO pollDataDAO = mock(PollDataDAO.class);
+        ConcurrentExecutionLimitingDAO concurrentExecutionLimitingDAO = mock(ConcurrentExecutionLimitingDAO.class);
         ConductorProperties properties = mock(ConductorProperties.class);
         when(properties.isEventExecutionIndexingEnabled()).thenReturn(true);
         when(properties.isAsyncIndexingEnabled()).thenReturn(true);
-        executionDAOFacade = new ExecutionDAOFacade(executionDAO, queueDAO, indexDAO, rateLimitingDao, pollDataDAO,
+        executionDAOFacade = new ExecutionDAOFacade(executionDAO, queueDAO, indexDAO, concurrentExecutionLimitingDAO, rateLimitingDao, pollDataDAO,
             objectMapper, properties);
     }
 

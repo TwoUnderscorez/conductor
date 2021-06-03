@@ -16,8 +16,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.conductor.common.config.TestObjectMapperConfiguration;
 import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.metadata.tasks.Task.Status;
+import com.netflix.conductor.contribs.executionLimiting.TaskDefLimitingDAO;
 import com.netflix.conductor.common.metadata.tasks.TaskDef;
 import com.netflix.conductor.core.config.ConductorProperties;
+import com.netflix.conductor.dao.ConcurrentExecutionLimitingDAO;
 import com.netflix.conductor.dao.ExecutionDAO;
 import com.netflix.conductor.dao.ExecutionDAOTest;
 import com.netflix.conductor.redis.config.RedisProperties;
@@ -91,5 +93,10 @@ public class RedisExecutionDAOTest extends ExecutionDAOTest {
     @Override
     protected ExecutionDAO getExecutionDAO() {
         return executionDAO;
+    }
+
+    @Override
+    protected ConcurrentExecutionLimitingDAO getLimitingDAO() {
+        return new TaskDefLimitingDAO(getExecutionDAO());
     }
 }

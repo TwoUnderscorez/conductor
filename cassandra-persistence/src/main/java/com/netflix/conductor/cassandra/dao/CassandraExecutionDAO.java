@@ -25,7 +25,6 @@ import com.netflix.conductor.cassandra.config.CassandraProperties;
 import com.netflix.conductor.cassandra.util.Statements;
 import com.netflix.conductor.common.metadata.events.EventExecution;
 import com.netflix.conductor.common.metadata.tasks.Task;
-import com.netflix.conductor.common.metadata.tasks.TaskDef;
 import com.netflix.conductor.common.run.Workflow;
 import com.netflix.conductor.common.utils.RetryUtil;
 import com.netflix.conductor.core.exception.ApplicationException;
@@ -235,44 +234,17 @@ public class CassandraExecutionDAO extends CassandraBaseDAO implements Execution
             throw new ApplicationException(Code.BACKEND_ERROR, errorMsg, e);
         }
     }
-
+    
     /**
      * This is a dummy implementation and this feature is not implemented for Cassandra backed Conductor
-     */
-    @Override
-    public boolean exceedsInProgressLimit(Task task) {
-        Optional<TaskDef> taskDefinition = task.getTaskDefinition();
-        if (!taskDefinition.isPresent()) {
-            return false;
-        }
-        int limit = taskDefinition.get().concurrencyLimit();
-        if (limit <= 0) {
-            return false;
-        }
-
-        try {
-            recordCassandraDaoRequests("selectTaskDefLimit", task.getTaskType(), task.getWorkflowType());
-            ResultSet resultSet = session.execute(selectTasksFromTaskDefLimitStatement.bind(task.getTaskDefName()));
-            List<String> taskIds = resultSet.all().stream()
-                .map(row -> row.getUUID(TASK_ID_KEY).toString())
-                .collect(Collectors.toList());
-            long current = taskIds.size();
-
-            if (!taskIds.contains(task.getTaskId()) && current >= limit) {
-                LOGGER.info("Task execution count limited. task - {}:{}, limit: {}, current: {}", task.getTaskId(),
-                    task.getTaskDefName(), limit, current);
-                Monitors.recordTaskConcurrentExecutionLimited(task.getTaskDefName(), limit);
-                return true;
-            }
-        } catch (Exception e) {
-            Monitors.error(CLASS_NAME, "exceedsInProgressLimit");
-            String errorMsg = String.format("Failed to get in progress limit - %s:%s in workflow :%s",
-                task.getTaskDefName(), task.getTaskId(), task.getWorkflowInstanceId());
-            LOGGER.error(errorMsg, e);
-            throw new ApplicationException(Code.BACKEND_ERROR, errorMsg);
-        }
-        return false;
+    */
+    public List<String> findAllTasksInProgressInOrderOfArrival(Task task, int limit) {
+        ResultSet resultSet = session.execute(selectTasksFromTaskDefLimitStatement.bind(task.getTaskDefName()));
+        return resultSet.all().stream()
+            .map(row -> row.getUUID(TASK_ID_KEY).toString())
+            .collect(Collectors.toList());
     }
+
 
     @Override
     public boolean removeTask(String taskId) {

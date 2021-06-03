@@ -137,6 +137,12 @@ public class WorkflowTask {
     @ProtoField(id = 26)
     private Integer retryCount;
 
+    @ProtoField(id = 27)
+    private int globalConcurrentExecutionLimit;
+
+    @ProtoField(id = 28)
+    private int localConcurrentExecutionLimit;
+
     /**
      * @return the name
      */
@@ -492,6 +498,34 @@ public class WorkflowTask {
         this.defaultExclusiveJoinTask = defaultExclusiveJoinTask;
     }
 
+    	    /**
+     * @return Global concurrent execution limit
+     */
+    public int getGlobalConcurrentExecutionLimit() {
+        return globalConcurrentExecutionLimit;
+    }
+
+    /**
+     * @param limit Global concurrent execution limit
+     */
+    public void setGlobalConcurrentExecutionLimit(int limit) {
+        this.globalConcurrentExecutionLimit = limit;
+    }
+
+    /**
+     * @return Local concurrent execution limit
+     */
+    public int getLocalConcurrentExecutionLimit() {
+        return localConcurrentExecutionLimit;
+    }
+
+    /**
+     * @param limit Local concurrent execution limit
+     */
+    public void setLocalConcurrentExecutionLimit(int limit) {
+        this.localConcurrentExecutionLimit = limit;
+    }
+
     private Collection<List<WorkflowTask>> children() {
         Collection<List<WorkflowTask>> workflowTaskLists = new LinkedList<>();
 
@@ -669,7 +703,9 @@ public class WorkflowTask {
             Objects.equals(getSink(), that.getSink()) &&
             Objects.equals(isAsyncComplete(), that.isAsyncComplete()) &&
             Objects.equals(getDefaultExclusiveJoinTask(), that.getDefaultExclusiveJoinTask()) &&
-            Objects.equals(getRetryCount(), that.getRetryCount());
+            Objects.equals(getRetryCount(), that.getRetryCount()) &&
+            Objects.equals(getGlobalConcurrentExecutionLimit(), that.getGlobalConcurrentExecutionLimit()) &&
+            Objects.equals(getLocalConcurrentExecutionLimit(), that.getLocalConcurrentExecutionLimit());
     }
 
     @Override
@@ -697,7 +733,9 @@ public class WorkflowTask {
             isAsyncComplete(),
             isOptional(),
             getDefaultExclusiveJoinTask(),
-            getRetryCount()
+            getRetryCount(),
+            getLocalConcurrentExecutionLimit(),
+            getGlobalConcurrentExecutionLimit()
         );
     }
 }

@@ -17,7 +17,6 @@ import com.netflix.conductor.common.validation.ErrorResponse;
 import com.netflix.conductor.core.exception.ApplicationException;
 import com.netflix.conductor.core.utils.Utils;
 import com.netflix.conductor.metrics.Monitors;
-import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

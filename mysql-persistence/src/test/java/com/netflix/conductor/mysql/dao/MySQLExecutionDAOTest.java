@@ -16,6 +16,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.conductor.common.config.TestObjectMapperConfiguration;
 import com.netflix.conductor.common.metadata.workflow.WorkflowDef;
 import com.netflix.conductor.common.run.Workflow;
+import com.netflix.conductor.contribs.executionLimiting.TaskDefLimitingDAO;
+import com.netflix.conductor.dao.ConcurrentExecutionLimitingDAO;
 import com.netflix.conductor.dao.ExecutionDAO;
 import com.netflix.conductor.dao.ExecutionDAOTest;
 import com.netflix.conductor.mysql.util.MySQLDAOTestUtil;
@@ -86,5 +88,10 @@ public class MySQLExecutionDAOTest extends ExecutionDAOTest {
     @Override
     public ExecutionDAO getExecutionDAO() {
         return executionDAO;
+    }
+
+    @Override
+    protected ConcurrentExecutionLimitingDAO getLimitingDAO() {
+        return new TaskDefLimitingDAO(getExecutionDAO());
     }
 }

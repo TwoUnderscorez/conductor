@@ -1273,6 +1273,8 @@ public abstract class AbstractProtoMapper {
         if (from.getRetryCount() != null) {
             to.setRetryCount( from.getRetryCount() );
         }
+        to.setGlobalConcurrentExecutionLimit( from.getGlobalConcurrentExecutionLimit() );
+        to.setLocalConcurrentExecutionLimit( from.getLocalConcurrentExecutionLimit() );
         return to.build();
     }
 
@@ -1316,6 +1318,8 @@ public abstract class AbstractProtoMapper {
         to.setLoopCondition( from.getLoopCondition() );
         to.setLoopOver( from.getLoopOverList().stream().map(this::fromProto).collect(Collectors.toCollection(ArrayList::new)) );
         to.setRetryCount( from.getRetryCount() );
+        to.setGlobalConcurrentExecutionLimit( from.getGlobalConcurrentExecutionLimit() );
+        to.setLocalConcurrentExecutionLimit( from.getLocalConcurrentExecutionLimit() );
         return to;
     }
 
