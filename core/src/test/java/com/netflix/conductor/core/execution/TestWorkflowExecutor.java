@@ -12,49 +12,6 @@
  */
 package com.netflix.conductor.core.execution;
 
-import static com.netflix.conductor.common.metadata.tasks.TaskType.DECISION;
-import static com.netflix.conductor.common.metadata.tasks.TaskType.DYNAMIC;
-import static com.netflix.conductor.common.metadata.tasks.TaskType.EVENT;
-import static com.netflix.conductor.common.metadata.tasks.TaskType.FORK_JOIN;
-import static com.netflix.conductor.common.metadata.tasks.TaskType.FORK_JOIN_DYNAMIC;
-import static com.netflix.conductor.common.metadata.tasks.TaskType.HTTP;
-import static com.netflix.conductor.common.metadata.tasks.TaskType.JOIN;
-import static com.netflix.conductor.common.metadata.tasks.TaskType.LAMBDA;
-import static com.netflix.conductor.common.metadata.tasks.TaskType.SIMPLE;
-import static com.netflix.conductor.common.metadata.tasks.TaskType.SUB_WORKFLOW;
-import static com.netflix.conductor.common.metadata.tasks.TaskType.TASK_TYPE_LAMBDA;
-import static com.netflix.conductor.common.metadata.tasks.TaskType.TASK_TYPE_SUB_WORKFLOW;
-import static com.netflix.conductor.common.metadata.tasks.TaskType.TASK_TYPE_WAIT;
-import static com.netflix.conductor.common.metadata.tasks.TaskType.USER_DEFINED;
-import static com.netflix.conductor.common.metadata.tasks.TaskType.WAIT;
-import static com.netflix.conductor.common.run.Workflow.WorkflowStatus.COMPLETED;
-import static com.netflix.conductor.common.run.Workflow.WorkflowStatus.PAUSED;
-import static com.netflix.conductor.common.run.Workflow.WorkflowStatus.RUNNING;
-import static com.netflix.conductor.core.exception.ApplicationException.Code.CONFLICT;
-import static java.util.Comparator.comparingInt;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.maxBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.netflix.conductor.common.config.TestObjectMapperConfiguration;
@@ -108,7 +65,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -127,6 +83,49 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+
+import static com.netflix.conductor.common.metadata.tasks.TaskType.DECISION;
+import static com.netflix.conductor.common.metadata.tasks.TaskType.DYNAMIC;
+import static com.netflix.conductor.common.metadata.tasks.TaskType.EVENT;
+import static com.netflix.conductor.common.metadata.tasks.TaskType.FORK_JOIN;
+import static com.netflix.conductor.common.metadata.tasks.TaskType.FORK_JOIN_DYNAMIC;
+import static com.netflix.conductor.common.metadata.tasks.TaskType.HTTP;
+import static com.netflix.conductor.common.metadata.tasks.TaskType.JOIN;
+import static com.netflix.conductor.common.metadata.tasks.TaskType.LAMBDA;
+import static com.netflix.conductor.common.metadata.tasks.TaskType.SIMPLE;
+import static com.netflix.conductor.common.metadata.tasks.TaskType.SUB_WORKFLOW;
+import static com.netflix.conductor.common.metadata.tasks.TaskType.TASK_TYPE_LAMBDA;
+import static com.netflix.conductor.common.metadata.tasks.TaskType.TASK_TYPE_SUB_WORKFLOW;
+import static com.netflix.conductor.common.metadata.tasks.TaskType.TASK_TYPE_WAIT;
+import static com.netflix.conductor.common.metadata.tasks.TaskType.USER_DEFINED;
+import static com.netflix.conductor.common.metadata.tasks.TaskType.WAIT;
+import static com.netflix.conductor.common.run.Workflow.WorkflowStatus.COMPLETED;
+import static com.netflix.conductor.common.run.Workflow.WorkflowStatus.PAUSED;
+import static com.netflix.conductor.common.run.Workflow.WorkflowStatus.RUNNING;
+import static com.netflix.conductor.core.exception.ApplicationException.Code.CONFLICT;
+import static java.util.Comparator.comparingInt;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.maxBy;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ContextConfiguration(classes = {TestObjectMapperConfiguration.class, TestWorkflowExecutor.TestConfiguration.class})
 @RunWith(SpringRunner.class)
@@ -211,7 +210,7 @@ public class TestWorkflowExecutor {
         taskMappers.put(LAMBDA, new LambdaTaskMapper(parametersUtils, metadataDAO));
 
         DeciderService deciderService = new DeciderService(parametersUtils, metadataDAO, externalPayloadStorageUtils,
-            systemTaskRegistry, taskMappers, Duration.ofMinutes(60), mock(Environment.class));
+            systemTaskRegistry, taskMappers, Duration.ofMinutes(60));
         MetadataMapperService metadataMapperService = new MetadataMapperService(metadataDAO);
 
         ConductorProperties properties = mock(ConductorProperties.class);
@@ -745,9 +744,7 @@ public class TestWorkflowExecutor {
 
         workflowExecutor.retry(workflow.getWorkflowId(), false);
 
-        //when:
-        when(executionDAOFacade.getWorkflowById(anyString(), anyBoolean())).thenReturn(workflow);
-
+        //then:
         assertEquals(Workflow.WorkflowStatus.RUNNING, workflow.getStatus());
         assertEquals(1, updateWorkflowCalledCounter.get());
         assertEquals(1, updateTasksCalledCounter.get());
@@ -1050,6 +1047,71 @@ public class TestWorkflowExecutor {
         assertEquals(task1.getStatus(), Status.IN_PROGRESS);
         assertEquals(workflow.getStatus(), WorkflowStatus.RUNNING);
         assertEquals(subWorkflow.getStatus(), WorkflowStatus.RUNNING);
+    }
+
+    @Test
+    public void testRetryTimedOutWorkflowWithoutFailedTasks() {
+        //setup
+        Workflow workflow = new Workflow();
+        workflow.setWorkflowId("testRetryWorkflowId");
+        WorkflowDef workflowDef = new WorkflowDef();
+        workflowDef.setName("testRetryWorkflowId");
+        workflowDef.setVersion(1);
+        workflow.setWorkflowDefinition(workflowDef);
+        workflow.setOwnerApp("junit_testRetryWorkflowId");
+        workflow.setStartTime(10L);
+        workflow.setEndTime(100L);
+        //noinspection unchecked
+        workflow.setOutput(Collections.EMPTY_MAP);
+        workflow.setStatus(WorkflowStatus.TIMED_OUT);
+
+        Task task_1_1 = new Task();
+        task_1_1.setTaskId(UUID.randomUUID().toString());
+        task_1_1.setSeq(20);
+        task_1_1.setRetryCount(1);
+        task_1_1.setTaskType(TaskType.SIMPLE.toString());
+        task_1_1.setStatus(Status.COMPLETED);
+        task_1_1.setRetried(true);
+        task_1_1.setTaskDefName("task1");
+        task_1_1.setWorkflowTask(new WorkflowTask());
+        task_1_1.setReferenceTaskName("task1_ref1");
+
+        Task task_2_1 = new Task();
+        task_2_1.setTaskId(UUID.randomUUID().toString());
+        task_2_1.setSeq(22);
+        task_2_1.setRetryCount(1);
+        task_2_1.setStatus(Status.COMPLETED);
+        task_2_1.setTaskType(TaskType.SIMPLE.toString());
+        task_2_1.setTaskDefName("task2");
+        task_2_1.setWorkflowTask(new WorkflowTask());
+        task_2_1.setReferenceTaskName("task2_ref1");
+
+        workflow.getTasks().addAll(Arrays.asList(task_1_1, task_2_1));
+
+        AtomicInteger updateWorkflowCalledCounter = new AtomicInteger(0);
+        doAnswer(invocation -> {
+            updateWorkflowCalledCounter.incrementAndGet();
+            return null;
+        }).when(executionDAOFacade).updateWorkflow(any());
+
+        AtomicInteger updateTasksCalledCounter = new AtomicInteger(0);
+        doAnswer(invocation -> {
+            updateTasksCalledCounter.incrementAndGet();
+            return null;
+        }).when(executionDAOFacade).updateTasks(any());
+        //end of setup
+
+        //when
+        when(executionDAOFacade.getWorkflowById(anyString(), anyBoolean())).thenReturn(workflow);
+        when(metadataDAO.getWorkflowDef(anyString(), anyInt())).thenReturn(Optional.of(new WorkflowDef()));
+
+        workflowExecutor.retry(workflow.getWorkflowId(), false);
+
+        //then
+        assertEquals(Workflow.WorkflowStatus.RUNNING, workflow.getStatus());
+        assertTrue(workflow.getLastRetriedTime() > 0);
+        assertEquals(1, updateWorkflowCalledCounter.get());
+        assertEquals(1, updateTasksCalledCounter.get());
     }
 
     @Test

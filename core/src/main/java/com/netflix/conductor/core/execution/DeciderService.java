@@ -38,7 +38,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -78,7 +77,6 @@ public class DeciderService {
     private final MetadataDAO metadataDAO;
     private final SystemTaskRegistry systemTaskRegistry;
     private final long taskPendingTimeThresholdMins;
-    private final Environment environment;
 
     private final Map<TaskType, TaskMapper> taskMappers;
 
@@ -93,15 +91,13 @@ public class DeciderService {
         ExternalPayloadStorageUtils externalPayloadStorageUtils,
         SystemTaskRegistry systemTaskRegistry,
         @Qualifier("taskProcessorsMap") Map<TaskType, TaskMapper> taskMappers,
-        @Value("${conductor.app.taskPendingTimeThreshold:60m}") Duration taskPendingTimeThreshold,
-                          Environment environment) {
+        @Value("${conductor.app.taskPendingTimeThreshold:60m}") Duration taskPendingTimeThreshold) {
         this.metadataDAO = metadataDAO;
         this.parametersUtils = parametersUtils;
         this.taskMappers = taskMappers;
         this.externalPayloadStorageUtils = externalPayloadStorageUtils;
         this.taskPendingTimeThresholdMins = taskPendingTimeThreshold.toMinutes();
         this.systemTaskRegistry = systemTaskRegistry;
-        this.environment = environment;
     }
 
     public DeciderOutcome decide(Workflow workflow) throws TerminateWorkflowException {
@@ -240,20 +236,6 @@ public class DeciderService {
             && checkForWorkflowCompletion(workflow))) {
             LOGGER.debug("Marking workflow: {} as complete.", workflow);
             outcome.isComplete = true;
-        }
-
-        // terminate workflows that exceed the threshold
-        if (environment.containsProperty(MAX_TASK_LIMIT)) {
-            //noinspection ConstantConditions
-            int maxTasksThreshold = environment.getProperty(MAX_TASK_LIMIT, int.class);
-            int currentTasks = workflow.getTasks().size();
-            if (currentTasks + tasksToBeScheduled.size() > maxTasksThreshold) {
-                String terminationReason = String.format("Sum of the tasks in the workflow %s " +
-                                "and tasks to be scheduled %s exceed threshold %s", currentTasks,
-                        tasksToBeScheduled.size(), maxTasksThreshold);
-                LOGGER.warn("{}, terminating {}", terminationReason, workflow.toShortString());
-                throw new TerminateWorkflowException(terminationReason, WorkflowStatus.TERMINATED);
-            }
         }
 
         return outcome;
@@ -605,8 +587,8 @@ public class DeciderService {
             return;
         }
 
-        String reason = String.format("Workflow '%s' timed out after %d seconds. Timeout configured as %d. " +
-                "Timeout policy configured to %s", workflow.getWorkflowId(), elapsedTime / 1000L, timeout,
+        String reason = String.format("Workflow timed out after %d seconds. Timeout configured as %d seconds. " +
+                "Timeout policy configured to %s", elapsedTime / 1000L, workflowDef.getTimeoutSeconds(),
             workflowDef.getTimeoutPolicy().name());
 
         switch (workflowDef.getTimeoutPolicy()) {
@@ -641,7 +623,7 @@ public class DeciderService {
         }
 
         String reason = String.format("Task timed out after %d seconds. Timeout configured as %d seconds. "
-                + "Timeout policy configured to %s", elapsedTime / 1000L, timeout / 1000L,
+                + "Timeout policy configured to %s", elapsedTime / 1000L, taskDef.getTimeoutSeconds(),
             taskDef.getTimeoutPolicy().name());
         timeoutTaskWithTimeoutPolicy(reason, taskDef, task);
     }

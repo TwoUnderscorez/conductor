@@ -24,7 +24,7 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.TimeZone;
 
-@ProtoMessage(fromProto = false)
+@ProtoMessage
 public class TaskSummary {
 
     /**
@@ -138,15 +138,25 @@ public class TaskSummary {
         return workflowId;
     }
 
-    public String getWorkflowType() {
-        return workflowType;
-    }
-
     /**
      * @param workflowId the workflowId to set
      */
     public void setWorkflowId(String workflowId) {
         this.workflowId = workflowId;
+    }
+
+    /**
+     * @return the workflowType
+     */
+    public String getWorkflowType() {
+        return workflowType;
+    }
+
+    /**
+     * @param workflowType the workflowType to set
+     */
+    public void setWorkflowType(String workflowType) {
+        this.workflowType = workflowType;
     }
 
     /**
