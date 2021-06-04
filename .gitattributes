@@ -2,3 +2,4 @@ docs/* linguist-documentation
 server/src/main/resources/swagger-ui/* linguist-vendored
 
 gradlew text eol=lf
+docker/server/bin/startup.sh text eol=lf

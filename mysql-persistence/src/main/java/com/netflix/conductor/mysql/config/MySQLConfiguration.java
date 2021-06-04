@@ -16,9 +16,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.conductor.dao.ExecutionDAO;
 import com.netflix.conductor.dao.MetadataDAO;
 import com.netflix.conductor.dao.QueueDAO;
+import com.netflix.conductor.dao.SemaphoreDAO;
 import com.netflix.conductor.mysql.dao.MySQLExecutionDAO;
 import com.netflix.conductor.mysql.dao.MySQLMetadataDAO;
 import com.netflix.conductor.mysql.dao.MySQLQueueDAO;
+import com.netflix.conductor.mysql.dao.MySQLSemaphoreDAO;
+
 import javax.sql.DataSource;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -49,5 +52,10 @@ public class MySQLConfiguration {
     @Bean
     public QueueDAO mySqlQueueDAO(ObjectMapper objectMapper, DataSource dataSource) {
         return new MySQLQueueDAO(objectMapper, dataSource);
+    }
+
+    @Bean
+    public SemaphoreDAO mySqlSemaphoreDAO(ObjectMapper objectMapper, DataSource dataSource) {
+        return new MySQLSemaphoreDAO(objectMapper, dataSource);
     }
 }

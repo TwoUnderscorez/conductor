@@ -10,7 +10,7 @@ public class ConcurrentExecutionLimitingProperties {
         return implementation;
     }
 
-    public void setJdbcUrl(String implementation) {
+    public void setImplementation(String implementation) {
         this.implementation = implementation;
     }
 }

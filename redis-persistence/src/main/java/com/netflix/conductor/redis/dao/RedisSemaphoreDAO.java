@@ -16,28 +16,27 @@
 package com.netflix.conductor.redis.dao;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.conductor.annotations.Trace;
 import com.netflix.conductor.core.config.ConductorProperties;
 import com.netflix.conductor.dao.SemaphoreDAO;
+import com.netflix.conductor.redis.config.AnyRedisCondition;
 import com.netflix.conductor.redis.config.RedisProperties;
 import com.netflix.conductor.redis.jedis.JedisProxy;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import org.joda.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.stereotype.Component;
 
-@Singleton
-@Trace
+@Component
+@Conditional(AnyRedisCondition.class)
 public class RedisSemaphoreDAO extends BaseDynoDAO implements SemaphoreDAO {
 
     private static final Logger logger = LoggerFactory.getLogger(RedisRateLimitingDAO.class);
 
     private JedisProxy dynoClient;
 
-    @Inject
-    protected RedisSemaphoreDAO(JedisProxy dynoClient, ObjectMapper objectMapper, ConductorProperties cProps, RedisProperties rProps) {
+    public RedisSemaphoreDAO(JedisProxy dynoClient, ObjectMapper objectMapper, ConductorProperties cProps, RedisProperties rProps) {
         super(dynoClient, objectMapper, cProps, rProps);
         this.dynoClient = dynoClient;
     }
